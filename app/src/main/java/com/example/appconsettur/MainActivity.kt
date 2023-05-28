@@ -37,9 +37,7 @@ class MainActivity : AppCompatActivity() {
     val ESCAPE_CHARACTERS = String(byteArrayOf(0x1b, 0x7c))
 
 
-
 //    var posPrinter:POSPrinter?=null
-
 
 
     companion object {
@@ -48,7 +46,6 @@ class MainActivity : AppCompatActivity() {
         var m_isConnected: Boolean = false
         lateinit var m_address: String
     }
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         var sendText = findViewById<Button>(R.id.sendText)
         var idSpinDisp = findViewById<Spinner>(R.id.spinner)
         var idTextOut = findViewById<EditText>(R.id.editTextText)
-        var closePrint=findViewById<Button>(R.id.closePrint)
+        var closePrint = findViewById<Button>(R.id.closePrint)
 
         var someActivityResultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -81,9 +78,7 @@ class MainActivity : AppCompatActivity() {
 
         if (bluetoothAdapter == null) {
             Toast.makeText(
-                this,
-                "Bluetooth no es compatible en este dispositivo",
-                Toast.LENGTH_SHORT
+                this, "Bluetooth no es compatible en este dispositivo", Toast.LENGTH_SHORT
             ).show()
             finish()
         } else {
@@ -96,8 +91,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                 if (ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.BLUETOOTH
+                        this, Manifest.permission.BLUETOOTH
                     ) != PackageManager.PERMISSION_GRANTED
                 ) {
                     Log.i("MainActivity", "ActivityCompat#requestPermissions")
@@ -134,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         }
         connect.setOnClickListener {
             productName = BXLConfigLoader.PRODUCT_NAME_SPP_R200III
-            bxlConfigLoader= BXLConfigLoader(this)
+            bxlConfigLoader = BXLConfigLoader(this)
             bxlConfigLoader!!.openFile()
             try {
 //                if (m_bluetoothSocket == null || !m_isConnected) {
@@ -156,18 +150,20 @@ class MainActivity : AppCompatActivity() {
                     bxlConfigLoader!!.removeEntry(logicalNames)
                 }
 
-                var logicalName="SPP-R200III_110362"
-                bxlConfigLoader!!.addEntry(logicalName,
+                var logicalName = "SPP-R200III_110362"
+                bxlConfigLoader!!.addEntry(
+                    logicalName,
                     BXLConfigLoader.DEVICE_CATEGORY_POS_PRINTER,
                     productName,
                     BXLConfigLoader.DEVICE_BUS_BLUETOOTH,
-                    "74:F0:7D:A8:85:25")
+                    "74:F0:7D:A8:85:25"
+                )
                 bxlConfigLoader!!.saveFile()
 
                 posPrinter = POSPrinter(this)
 
                 posPrinter.open("SPP-R200III_110362")
-                posPrinter.claim(5000*2)
+                posPrinter.claim(5000 * 2)
                 posPrinter.deviceEnabled = true
                 Toast.makeText(this, "successful connect", Toast.LENGTH_SHORT).show()
 
@@ -177,10 +173,8 @@ class MainActivity : AppCompatActivity() {
                 Log.i("MainActivity", "Error al conectar a $m_address")
             }
         }
-        //"|N|lA|aM|1hC|1vCBixolon Text Print!!
-//        posPrinter!!.printNormal(POSPrinterConst.PTR_S_RECEIPT, strOption + data)
 
-        closePrint.setOnClickListener{
+        closePrint.setOnClickListener {
             try {
                 posPrinter.close()
                 Toast.makeText(this, "Close Print", Toast.LENGTH_SHORT).show()
@@ -190,63 +184,34 @@ class MainActivity : AppCompatActivity() {
                 Log.i("MainActivity", "Error al cerrar a $m_address")
             }
         }
-        sendText.setOnClickListener {
-//            posPrinter?.printNormal(POSPrinterConst.PTR_S_RECEIPT, "Hello World")
-
-//            try{
-//                bxlConfigLoader= BXLConfigLoader(this)
-//                bxlConfigLoader!!.openFile()
-//            } catch (e:Exception){
-//                e.printStackTrace()
-//                Log.i("MainActivity", "Error al conectar")
-//            }
-                val msg: String = "SMART\n"
-                try {
-                    posPrinter.printNormal(POSPrinterConst.PTR_S_RECEIPT,(ESCAPE_CHARACTERS + "uC"+ESCAPE_CHARACTERS + "cA")+ msg)
-                    posPrinter.printNormal(POSPrinterConst.PTR_S_RECEIPT,(ESCAPE_CHARACTERS + "uC"+ESCAPE_CHARACTERS + "cA")+ "NEW LINE\n")
-//                    for (entry in bxlConfigLoader?.entries!!) {
-//                        val config = entry as JposEntry
-//                        val logicalNames = config.logicalName
-//                        Log.i("MainActivity", logicalNames)
-//
-//                        bxlConfigLoader!!.removeEntry(logicalNames)
-//                    }
-//                    val ESCAPE_CHARACTERS = String(byteArrayOf(0x1b, 0x7c))
-//
-//                    var logicalName="SPP-R200III_110362"
-//                    bxlConfigLoader!!.addEntry(logicalName,
-//                        BXLConfigLoader.DEVICE_CATEGORY_POS_PRINTER,
-//                        productName,
-//                        BXLConfigLoader.DEVICE_BUS_BLUETOOTH,
-//                        "74:F0:7D:A8:85:25")
-//                    bxlConfigLoader!!.saveFile()
-//
-//                    posPrinter = POSPrinter(this)
-//
-//                    posPrinter.open("SPP-R200III_110362")
-//                    posPrinter.claim(5000*2)
-//                    posPrinter.deviceEnabled = true
-
-
-
-
-
-//                    posPrinter.close()
-//                    m_bluetoothSocket!!.outputStream.write(msg.toByteArray())
-//                    Toast.makeText(this, "Mensaje enviado", Toast.LENGTH_SHORT).show()
-                    Log.i("MainActivity", "Mensaje enviado")
-//                    posPrinter?.printNormal(POSPrinterConst.PTR_S_RECEIPT, "|N|lA|aM|1hC|1vC" + msg)
-
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    Toast.makeText(this, "Error al enviar mensaje", Toast.LENGTH_SHORT).show()
-                    Log.i("MainActivity", "Error al enviar mensaje")
-                }
+        fun printManifest(manifest: String) {
+            try {
+                posPrinter.printNormal(POSPrinterConst.PTR_S_RECEIPT, manifest)
+                Log.i("MainActivity", "Mensaje enviado")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this, "Error al enviar mensaje", Toast.LENGTH_SHORT).show()
+                Log.i("MainActivity", "Error al enviar mensaje")
             }
+        }
+        sendText.setOnClickListener {
+            val msg: String = "SMART_TESTS\n"
+            //                    posPrinter.printNormal(POSPrinterConst.PTR_S_RECEIPT,(ESCAPE_CHARACTERS + "uC"+ESCAPE_CHARACTERS + "cA")+ msg)
 
-
+            val msgTest: String =
+                "\u001B\u007CaM\u001B\u007CcA\u001B\u007c!uCTexto de ejemplo\n\u001B|bM\u001B|cA\u001B|!uCEXAMPLE TEST 2\n"
+            val pasajerosString = """
+    |Nombre          Edad  Destino 
+    ----------------------------------------
+    |Eduardo Mongomery   20    Machu Picchu
+    |Marge Simpson        20    Machu Picchu
+    |
+"""
+            printManifest(msgTest)
         }
 
+
+    }
 
 
 }
