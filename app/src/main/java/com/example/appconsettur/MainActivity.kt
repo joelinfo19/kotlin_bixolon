@@ -8,7 +8,11 @@ import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.SoundPool
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -127,9 +131,18 @@ class MainActivity : AppCompatActivity() {
             }
         }
         connect.setOnClickListener {
-            productName = BXLConfigLoader.PRODUCT_NAME_SPP_R200III
-            bxlConfigLoader = BXLConfigLoader(this)
-            bxlConfigLoader!!.openFile()
+            //NEW FILE IS IMPORTANT
+            try{
+
+                productName = BXLConfigLoader.PRODUCT_NAME_SPP_R200III
+                bxlConfigLoader = BXLConfigLoader(this)
+                bxlConfigLoader!!.openFile()
+            }catch (JposException:Exception){
+                JposException.printStackTrace()
+                bxlConfigLoader?.newFile()
+
+            }
+
             try {
 //                if (m_bluetoothSocket == null || !m_isConnected) {
 //                    val IntValSpin = idSpinDisp.selectedItemPosition
@@ -187,6 +200,17 @@ class MainActivity : AppCompatActivity() {
         fun printManifest(manifest: String) {
             try {
                 posPrinter.printNormal(POSPrinterConst.PTR_S_RECEIPT, manifest)
+//                val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                    vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+//                } else {
+//                    vibrator.vibrate(100)
+//                }
+                val soundPool = SoundPool.Builder().build()
+                val soundId = soundPool.load(this, R.raw.sound_file, 1)  // Reemplaza `sound_file` con el nombre de tu archivo de sonido
+                soundPool.setOnLoadCompleteListener { _, _, _ ->
+                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                }
                 Log.i("MainActivity", "Mensaje enviado")
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -209,6 +233,7 @@ class MainActivity : AppCompatActivity() {
 """
             printManifest(msgTest)
         }
+
 
 
     }
