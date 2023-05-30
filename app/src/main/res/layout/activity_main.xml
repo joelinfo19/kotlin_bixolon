@@ -93,6 +93,27 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Close Print" />
+
+        <Button
+            android:id="@+id/successButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#4CAF50"
+            android:text="Success" />
+
+        <Button
+            android:id="@+id/warningButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#AEA23F"
+            android:text="Warning" />
+
+        <Button
+            android:id="@+id/errorButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#D10404"
+            android:text="Error" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

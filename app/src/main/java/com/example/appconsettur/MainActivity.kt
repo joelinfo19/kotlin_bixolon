@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.MediaPlayer
 import android.media.SoundPool
 import android.os.Build
 import android.os.Bundle
@@ -68,6 +69,9 @@ class MainActivity : AppCompatActivity() {
         var idSpinDisp = findViewById<Spinner>(R.id.spinner)
         var idTextOut = findViewById<EditText>(R.id.editTextText)
         var closePrint = findViewById<Button>(R.id.closePrint)
+        var errorButton = findViewById<Button>(R.id.errorButton)
+        var warningButton = findViewById<Button>(R.id.warningButton)
+        var successButton = findViewById<Button>(R.id.successButton)
 
         var someActivityResultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -187,14 +191,40 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        closePrint.setOnClickListener {
-            try {
-                posPrinter.close()
-                Toast.makeText(this, "Close Print", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(this, "Error al cerrar a $m_address", Toast.LENGTH_SHORT).show()
-                Log.i("MainActivity", "Error al cerrar a $m_address")
+
+
+        fun successSound() {
+            val soundPool = SoundPool.Builder().build()
+            val soundId = soundPool.load(
+                this,
+                R.raw.success2,
+                1
+            )
+            soundPool.setOnLoadCompleteListener { _, _, _ ->
+                soundPool.play(soundId, 1f, 1f, 1, 0, 2f)
+            }
+        }
+        fun errorSound() {
+            val soundPool = SoundPool.Builder().build()
+            val soundId = soundPool.load(
+                this,
+                R.raw.error,
+                1
+            )
+            soundPool.setOnLoadCompleteListener { _, _, _ ->
+                soundPool.play(soundId, 1f, 1f, 1, 0, 2f)
+            }
+        }
+
+        fun warningSound() {
+            val soundPool = SoundPool.Builder().build()
+            val soundId = soundPool.load(
+                this,
+                R.raw.warning,
+                1
+            )
+            soundPool.setOnLoadCompleteListener { _, _, _ ->
+                soundPool.play(soundId, 1f, 1f, 1, 0, 2f)
             }
         }
         fun printManifest(manifest: String) {
@@ -206,16 +236,26 @@ class MainActivity : AppCompatActivity() {
 //                } else {
 //                    vibrator.vibrate(100)
 //                }
-                val soundPool = SoundPool.Builder().build()
-                val soundId = soundPool.load(this, R.raw.sound_file, 1)  // Reemplaza `sound_file` con el nombre de tu archivo de sonido
-                soundPool.setOnLoadCompleteListener { _, _, _ ->
-                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                }
+                successSound()
+                Toast.makeText(this, "Mensaje enviado", Toast.LENGTH_SHORT).show()
                 Log.i("MainActivity", "Mensaje enviado")
             } catch (e: Exception) {
+
                 e.printStackTrace()
                 Toast.makeText(this, "Error al enviar mensaje", Toast.LENGTH_SHORT).show()
+                errorSound()
                 Log.i("MainActivity", "Error al enviar mensaje")
+            }
+        }
+        closePrint.setOnClickListener {
+            try {
+                posPrinter.close()
+                Toast.makeText(this, "Close Print", Toast.LENGTH_SHORT).show()
+                warningSound()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this, "Error al cerrar a $m_address", Toast.LENGTH_SHORT).show()
+                Log.i("MainActivity", "Error al cerrar a $m_address")
             }
         }
         sendText.setOnClickListener {
@@ -233,6 +273,18 @@ class MainActivity : AppCompatActivity() {
 """
             printManifest(msgTest)
         }
+
+        errorButton.setOnClickListener {
+            errorSound()
+        }
+        successButton.setOnClickListener {
+            successSound()
+        }
+        warningButton.setOnClickListener {
+            warningSound()
+        }
+
+
 
 
 
