@@ -192,7 +192,14 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-
+        fun successVibrate(){
+            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            if (Build.VERSION.SDK_INT >= 26) {
+                vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                vibrator.vibrate(500)
+            }
+        }
         fun successSound() {
             val soundPool = SoundPool.Builder().build()
             val soundId = soundPool.load(
@@ -278,7 +285,7 @@ class MainActivity : AppCompatActivity() {
             errorSound()
         }
         successButton.setOnClickListener {
-            successSound()
+            successVibrate()
         }
         warningButton.setOnClickListener {
             warningSound()
