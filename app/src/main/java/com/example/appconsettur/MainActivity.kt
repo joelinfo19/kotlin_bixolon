@@ -25,10 +25,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
 import com.bxl.config.editor.BXLConfigLoader
+import com.google.gson.Gson
 import jpos.POSPrinter
 import jpos.POSPrinterConst
 import jpos.config.JposEntry
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.UUID
+import okhttp3.*
+import java.io.IOException
 
 const val REQUEST_ENABLE_BT = 1
 
@@ -43,7 +50,10 @@ class MainActivity : AppCompatActivity() {
 
 
 //    var posPrinter:POSPrinter?=null
-
+// Función para deserializar la respuesta JSON en un objeto Kotlin
+    inline fun <reified T> parseJson(json: String): T {
+        return Gson().fromJson(json, T::class.java)
+    }
 
     companion object {
         var m_myUid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
@@ -243,14 +253,14 @@ class MainActivity : AppCompatActivity() {
 //                } else {
 //                    vibrator.vibrate(100)
 //                }
-                successSound()
+//                successSound()
                 Toast.makeText(this, "Mensaje enviado", Toast.LENGTH_SHORT).show()
                 Log.i("MainActivity", "Mensaje enviado")
             } catch (e: Exception) {
 
                 e.printStackTrace()
                 Toast.makeText(this, "Error al enviar mensaje", Toast.LENGTH_SHORT).show()
-                errorSound()
+//                errorSound()
                 Log.i("MainActivity", "Error al enviar mensaje")
             }
         }
@@ -258,27 +268,113 @@ class MainActivity : AppCompatActivity() {
             try {
                 posPrinter.close()
                 Toast.makeText(this, "Close Print", Toast.LENGTH_SHORT).show()
-                warningSound()
+                //warningSound()
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this, "Error al cerrar a $m_address", Toast.LENGTH_SHORT).show()
                 Log.i("MainActivity", "Error al cerrar a $m_address")
             }
         }
-        sendText.setOnClickListener {
-            val msg: String = "SMART_TESTS\n"
-            //                    posPrinter.printNormal(POSPrinterConst.PTR_S_RECEIPT,(ESCAPE_CHARACTERS + "uC"+ESCAPE_CHARACTERS + "cA")+ msg)
 
-            val msgTest: String =
-                "\u001B\u007CaM\u001B\u007CcA\u001B\u007c!uCTexto de ejemplo\n\u001B|bM\u001B|cA\u001B|!uCEXAMPLE TEST 2\n"
-            val pasajerosString = """
-    |Nombre          Edad  Destino 
-    ----------------------------------------
-    |Eduardo Mongomery   20    Machu Picchu
-    |Marge Simpson        20    Machu Picchu
-    |
-"""
-            printManifest(msgTest)
+        // Función para realizar la solicitud HTTP y obtener la respuesta
+        fun getResponseFromServer(url: String): Response {
+            val client = OkHttpClient()
+            val request = Request.Builder()
+                .url(url)
+                .build()
+
+            return client.newCall(request).execute()
+        }
+
+
+        data class MyObject(val name: String, val value: Int)
+
+        // Función para consumir el endpoint y obtener el objeto de respuesta
+        fun fetchDataFromEndpoint(url: String) {
+            // Clase que representa el objeto de respuesta JSON
+            val response = getResponseFromServer(url)
+            val json = response.body?.string()
+
+            if (response.isSuccessful && json != null) {
+                // Deserializar la respuesta JSON en un objeto Kotlin
+                val responseObject = parseJson<MyObject>(json)
+
+                // Utilizar el objeto de respuesta
+                println("Name: ${responseObject.name}")
+                println("Value: ${responseObject.value}")
+            } else {
+                println("Error en la solicitud HTTP")
+            }
+        }
+
+        sendText.setOnClickListener {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val url = "http://192.168.71.16:8001/api/v1/intranet/export/control/travel-manifest-bix/144363"
+
+                    val client = OkHttpClient()
+
+                    val request = Request.Builder()
+                        .url(url)
+                        .build()
+
+                    client.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) {
+                            // La solicitud no fue exitosa
+                            println("Error: ${response.code}")
+                            return@use
+                        }
+
+                        val manifestText = response.body?.string()
+
+
+                        // Aquí puedes llamar a la función para imprimir el texto obtenido
+                        withContext(Dispatchers.Main) {
+                            if (manifestText != null) {
+                                Log.i("MainActivity", manifestText)
+                            }
+                            // Llamar a la función para imprimir el texto
+                            if (manifestText != null) {
+                                printManifest(manifestText)
+//                                printManifest("""
+//                                    CONSETTUR
+//                                    MACHUPICCHU S.A.C      NRO : 144363
+//                                    CONDUCTOR : DIONICIO PIÑI BALLADARES
+//                                    NRO DOC C. : 23372445
+//                                    EMBARCADOR : CONTROL5@CONSETTUR.COM CONSETTUR SAC
+//                                    NRO DOC E. : 11111111
+//                                    PLACA : XBU-950        UNIDAD : 01
+//                                    EMBARQUE : 14:28 / 2023-06-01    TRAMO : SUBIDA
+//                                    MANIFIESTO DE PASAJEROS
+//                                    NRO      TIPO DOC     NOMBRES          EDAD
+//                                             NRO DOC      APELLIDOS        PAIS
+//                                """.trimIndent())
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@MainActivity, "Error al enviar mensaje", Toast.LENGTH_SHORT).show()
+                        Log.i("MainActivity", "Error al enviar mensaje")
+                    }
+                }
+            }
+//                        printManifest(manifestText)
+
+//            val msg: String = "SMART_TESTS\n"
+//            //                    posPrinter.printNormal(POSPrinterConst.PTR_S_RECEIPT,(ESCAPE_CHARACTERS + "uC"+ESCAPE_CHARACTERS + "cA")+ msg)
+//
+//            val msgTest: String =
+//                "\u001B\u007CaM\u001B\u007CcA\u001B\u007c!uCTexto de ejemplo\n\u001B|bM\u001B|cA\u001B|!uCEXAMPLE TEST 2\n"
+//            val pasajerosString = """
+//    |Nombre          Edad  Destino
+//    ----------------------------------------
+//    |Eduardo Mongomery   20    Machu Picchu
+//    |Marge Simpson        20    Machu Picchu
+//    |
+//""".trimIndent()
+//            printManifest(msgTest)
         }
 
         errorButton.setOnClickListener {
